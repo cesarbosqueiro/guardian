@@ -24,6 +24,9 @@ instancias/
     mods/
 ```
 
+- **Mods fora da pasta `mods/`:** por padrão (`modsOnClasspath`, ligado), todo `.jar`/`.zip` de `instancia/<v>/mods/` vai para `game/<v>/guardian/mods/` no jogador e entra no `-cp`. O FML acha mods no classpath, nas duas versões. O que não é jar (`.cfg`, `.json`, `.txt`) fica em `mods/` como configuração padrão, escrita só se o jogador ainda não tiver.
+- **Coremods e tweakers:** o `ManifestTool` lê o `META-INF/MANIFEST.MF` de cada jar. `TweakClass` vira `--tweakClass` no fim do comando; `FMLCorePlugin` vira `-Dfml.coreMods.load`. É o que a pasta `mods/` fazia sozinha e o classpath não faz. Se um mod pedir um tweaker que não declara no manifest, ponha `"modsOnClasspath": false` no perfil e ele volta para `mods/`.
+- **Trava:** qualquer `.jar`/`.zip`/`.litemod` que aparecer em `game/<v>/mods/` vai para `mods-disabled/`. Configurações não são tocadas.
 - O client jar e os assets **não** são hospedados por você: o manifesto aponta para a Mojang.
 - **Jar-mod (1.5.2):** o launcher baixa o `1.5.2.jar` da Mojang e grava `1.5.2-patched.jar` localmente com o conteúdo de `jarmods/` por cima, sem `META-INF/`. Ninguém redistribui o cliente.
 - **OptiFine:** hospedar exige permissão do sp614x.

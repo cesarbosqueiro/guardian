@@ -96,7 +96,8 @@ public class LocalFilesTest {
         File legacyMod = new File(layout.profile("1.5.2"), "mods/OptiFine-152.jar");
         File modernMod = new File(layout.profile("1.8.9"), "mods/OptiFine.jar");
         File stray = new File(layout.profile("1.8.9"), "mods/cheat.jar");
-        for (File f : new File[] {legacyMod, modernMod, stray}) {
+        File config = new File(layout.profile("1.8.9"), "mods/OptiFine.cfg");
+        for (File f : new File[] {legacyMod, modernMod, stray, config}) {
             f.getParentFile().mkdirs();
             f.createNewFile();
         }
@@ -105,6 +106,7 @@ public class LocalFilesTest {
         assertTrue(legacyMod.isFile());
         assertTrue(modernMod.isFile());
         assertFalse(stray.isFile());
+        assertTrue(config.isFile());
         assertTrue(new File(layout.profile("1.8.9"), "mods-disabled/cheat.jar").isFile());
     }
 }

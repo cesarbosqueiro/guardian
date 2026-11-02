@@ -59,7 +59,7 @@ final class ManifestBuilder {
         List<ManifestFile> jarMods = tree(instance, staging, "jarmods", ManifestFile.JARMOD, true);
         p.patchedJar = !jarMods.isEmpty();
         p.files.addAll(jarMods);
-        p.files.addAll(tree(instance, staging, "mods", ManifestFile.MOD, true));
+        new ModScanner(staging, pt.modsOnClasspath == null || pt.modsOnClasspath).scan(instance, p);
         p.files.addAll(tree(instance, staging, "config-defaults", ManifestFile.CONFIG, false));
         p.files.add(staging.stage(agent, AGENT_PATH, ManifestFile.AGENT, null));
         return p;

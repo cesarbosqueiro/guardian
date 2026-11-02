@@ -24,6 +24,7 @@ final class Template {
         String versionId;
         String agentMapping;
         String cdnBaseUrl;
+        Boolean modsOnClasspath;
     }
 
     static File relativeTo(File templateFile, String path) {

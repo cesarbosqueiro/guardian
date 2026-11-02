@@ -36,6 +36,7 @@ public final class LaunchCommand {
         cmd.add("-Xmx" + t.memoryMb + "M");
         cmd.addAll(m.java.flags);
         cmd.add("-XX:+DisableAttachMechanism");
+        if (!p.coreMods.isEmpty()) cmd.add("-Dfml.coreMods.load=" + String.join(",", p.coreMods));
         cmd.add("-Djava.library.path=" + new File(t.profileDir, Natives.DIR).getAbsolutePath());
         cmd.add("-javaagent:" + agent(p, t).getAbsolutePath() + "=servers=" + serverKeys(m) + ",mapping=" + p.agentMapping);
         cmd.add("-cp");
@@ -43,6 +44,10 @@ public final class LaunchCommand {
         cmd.add(p.mainClass);
         Map<String, String> vars = variables(m, p, t);
         for (String arg : p.gameArguments) cmd.add(substitute(arg, vars));
+        for (String tweak : p.tweakClasses) {
+            cmd.add("--tweakClass");
+            cmd.add(tweak);
+        }
         return cmd;
     }
 
@@ -65,7 +70,7 @@ public final class LaunchCommand {
     private static String classpath(Profile p, LaunchTarget t) throws IOException {
         StringBuilder sb = new StringBuilder();
         for (ManifestFile f : p.files) {
-            if (!f.forOs(t.os) || !(f.is(ManifestFile.LIBRARY) || f.is(ManifestFile.GAME))) continue;
+            if (!f.forOs(t.os) || !(f.is(ManifestFile.LIBRARY) || f.is(ManifestFile.CLASSMOD) || f.is(ManifestFile.GAME))) continue;
             String path = f.is(ManifestFile.GAME) && p.patchedJar ? JarMod.patchedPath(f) : f.path;
             if (sb.length() > 0) sb.append(File.pathSeparatorChar);
             sb.append(Paths.resolve(t.profileDir, path).getAbsolutePath());

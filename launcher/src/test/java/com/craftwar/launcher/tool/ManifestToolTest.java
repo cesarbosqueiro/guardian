@@ -65,6 +65,20 @@ public class ManifestToolTest {
         return f;
     }
 
+    static File jar(File root, String rel, String attribute, String value) throws IOException {
+        File f = new File(root, rel);
+        f.getParentFile().mkdirs();
+        java.util.jar.Manifest m = new java.util.jar.Manifest();
+        m.getMainAttributes().put(java.util.jar.Attributes.Name.MANIFEST_VERSION, "1.0");
+        if (attribute != null) m.getMainAttributes().putValue(attribute, value);
+        try (java.util.jar.JarOutputStream out = new java.util.jar.JarOutputStream(new java.io.FileOutputStream(f), m)) {
+            out.putNextEntry(new java.util.zip.ZipEntry("mcmod.info"));
+            out.write("[]".getBytes(StandardCharsets.UTF_8));
+            out.closeEntry();
+        }
+        return f;
+    }
+
     private String key() {
         return Keys.publicToBase64(Ec.newKeyPair().getPublic());
     }
@@ -74,11 +88,13 @@ public class ManifestToolTest {
         write(root, "i189/versions/1.8.9/1.8.9.json", VANILLA_189);
         write(root, "i189/versions/forge/forge.json", FORGE_189);
         write(root, "i189/libraries/net/minecraft/launchwrapper/1.12/launchwrapper-1.12.jar", "lw");
-        write(root, "i189/mods/OptiFine.jar", "of");
+        jar(root, "i189/mods/OptiFine.jar", "TweakClass", "optifine.OptiFineForgeTweaker");
+        jar(root, "i189/mods/1.8.9/CoreThing.jar", "FMLCorePlugin", "core.Plugin");
+        write(root, "i189/mods/OptiFine.cfg", "shaders=false");
         write(root, "i189/config-defaults/options.txt", "fov:0");
         write(root, "i152/versions/1.5.2/1.5.2.json", VANILLA_152);
         write(root, "i152/jarmods/forge-1.5.2-universal.zip", "forge");
-        write(root, "i152/mods/OptiFine-152.jar", "of152");
+        jar(root, "i152/mods/OptiFine-152.jar", null, null);
         write(root, "agent.jar", "agent");
         File template = write(root, "template.json", String.format(TEMPLATE, key(), key()));
         File keys = tmp.newFolder("keys");
@@ -105,10 +121,16 @@ public class ManifestToolTest {
         assertEquals(2, count(modern, "tv/twitch"));
         assertEquals(1, count(legacy, "jarmods/forge-1.5.2-universal.zip"));
         assertEquals(0, count(legacy, "OptiFine.jar"));
-        assertTrue(new File(out, "files/1.8.9/mods/OptiFine.jar").isFile());
-        assertTrue(new File(out, "files/1.5.2/mods/OptiFine-152.jar").isFile());
-        assertEquals("https://cdn.test/files/1.8.9/mods/OptiFine.jar", find(modern, "mods/OptiFine.jar").url);
-        assertEquals("https://raw.githubusercontent.com/cw/pack-152/main/mods/OptiFine-152.jar", find(legacy, "mods/OptiFine-152.jar").url);
+        assertTrue(new File(out, "files/1.8.9/guardian/mods/OptiFine.jar").isFile());
+        assertTrue(new File(out, "files/1.5.2/guardian/mods/OptiFine-152.jar").isFile());
+        assertEquals(ManifestFile.CLASSMOD, find(modern, "guardian/mods/OptiFine.jar").kind);
+        assertEquals("https://cdn.test/files/1.8.9/guardian/mods/OptiFine.jar", find(modern, "guardian/mods/OptiFine.jar").url);
+        assertEquals(ManifestFile.CONFIG, find(modern, "mods/OptiFine.cfg").kind);
+        assertEquals(0, modern.files.stream().filter(f -> f.is(ManifestFile.MOD)).count());
+        assertEquals(java.util.Collections.singletonList("optifine.OptiFineForgeTweaker"), modern.tweakClasses);
+        assertEquals(java.util.Collections.singletonList("core.Plugin"), modern.coreMods);
+        assertTrue(legacy.tweakClasses.isEmpty());
+        assertEquals("https://raw.githubusercontent.com/cw/pack-152/main/guardian/mods/OptiFine-152.jar", find(legacy, "guardian/mods/OptiFine-152.jar").url);
         assertEquals("https://launcher.mojang.com/client.jar", find(modern, "versions/1.8.9/1.8.9.jar").url);
     }
 
@@ -122,6 +144,10 @@ public class ManifestToolTest {
         assertTrue(cmd.contains("-XX:+DisableAttachMechanism"));
         assertEquals("Player_1", cmd.get(cmd.indexOf("--username") + 1));
         assertFalse(cmd.contains("--server"));
+        assertEquals("--tweakClass", cmd.get(cmd.size() - 2));
+        assertEquals("optifine.OptiFineForgeTweaker", cmd.get(cmd.size() - 1));
+        assertTrue(cmd.contains("-Dfml.coreMods.load=core.Plugin"));
+        assertTrue(cmd.get(cmd.indexOf("-cp") + 1).contains("guardian" + File.separator + "mods" + File.separator + "OptiFine.jar"));
         assertTrue(line.contains("=servers=" + m.servers.get(0).publicKey + ":" + m.servers.get(1).publicKey + ",mapping=forge-1.8.9"));
     }
 

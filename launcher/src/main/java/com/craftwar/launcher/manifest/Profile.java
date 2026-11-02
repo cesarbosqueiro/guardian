@@ -12,6 +12,8 @@ public final class Profile {
     public String agentMapping;
     public Manifest.AssetIndex assetIndex;
     public boolean patchedJar;
+    public List<String> tweakClasses = new ArrayList<String>();
+    public List<String> coreMods = new ArrayList<String>();
     public List<ManifestFile> files = new ArrayList<ManifestFile>();
 
     @Override

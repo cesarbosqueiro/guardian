@@ -9,6 +9,7 @@ public final class ManifestFile {
     public static final String AGENT = "agent";
     public static final String CONFIG = "config";
     public static final String JARMOD = "jarmod";
+    public static final String CLASSMOD = "classmod";
 
     public String path;
     public String url;
