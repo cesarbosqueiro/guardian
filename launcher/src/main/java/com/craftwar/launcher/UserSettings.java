@@ -47,8 +47,28 @@ public final class UserSettings {
         return Integer.toString(version).equals(p.getProperty("consent.version")) && textHash.equals(p.getProperty("consent.hash"));
     }
 
+    public String profile() {
+        return p.getProperty("profile", "");
+    }
+
+    public String server() {
+        return p.getProperty("server", "");
+    }
+
     public void nick(String nick) {
         p.setProperty("nick", nick);
+    }
+
+    public void profile(String id) {
+        p.setProperty("profile", id);
+    }
+
+    public void server(String id) {
+        p.setProperty("server", id);
+    }
+
+    public void javaPath(String path) {
+        p.setProperty("javaPath", path == null ? "" : path.trim());
     }
 
     public void memoryMb(int mb) {

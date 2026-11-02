@@ -23,25 +23,29 @@ final class ConsentDialog extends JDialog {
         area.setEditable(false);
         area.setLineWrap(true);
         area.setWrapStyleWord(true);
-        Theme.field(area);
+        area.setFont(Theme.BODY);
         JScrollPane scroll = new JScrollPane(area);
-        scroll.setPreferredSize(new Dimension(520, 380));
+        scroll.setPreferredSize(new Dimension(520, 360));
         JButton decline = new JButton("Nao aceito");
-        JButton accept = Theme.primary("Aceito e jogar");
+        JButton accept = new JButton("Aceito e jogar");
         decline.addActionListener(e -> close(false));
         accept.addActionListener(e -> close(true));
-        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        buttons.setBackground(Theme.BACKGROUND);
-        buttons.add(decline);
-        buttons.add(accept);
-        JPanel root = new JPanel(new BorderLayout(0, 14));
-        root.setBackground(Theme.BACKGROUND);
-        root.setBorder(Theme.padding(18, 18));
+        JPanel buttons = new JPanel(new BorderLayout());
+        buttons.setOpaque(false);
+        buttons.add(decline, BorderLayout.WEST);
+        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        right.setOpaque(false);
+        right.add(accept);
+        buttons.add(right, BorderLayout.EAST);
+        JPanel root = new JPanel(new BorderLayout(0, 10));
+        root.setBackground(Theme.PANEL);
+        root.setBorder(new RetroBorder());
         root.add(scroll, BorderLayout.CENTER);
         root.add(buttons, BorderLayout.SOUTH);
         setContentPane(root);
         pack();
         setLocationRelativeTo(owner);
+        getRootPane().setDefaultButton(accept);
     }
 
     private void close(boolean result) {

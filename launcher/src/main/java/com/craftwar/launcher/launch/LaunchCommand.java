@@ -12,9 +12,15 @@ import java.util.UUID;
 import com.craftwar.launcher.manifest.Manifest;
 import com.craftwar.launcher.manifest.ManifestFile;
 import com.craftwar.launcher.manifest.Paths;
+import com.craftwar.launcher.manifest.Profile;
+import com.craftwar.launcher.manifest.ServerEntry;
+import com.craftwar.launcher.sync.Assets;
+import com.craftwar.launcher.sync.JarMod;
 import com.craftwar.launcher.sync.Natives;
 
 public final class LaunchCommand {
+
+    public static final String KEY_SEPARATOR = ":";
 
     private LaunchCommand() {
     }
@@ -23,57 +29,64 @@ public final class LaunchCommand {
         return UUID.nameUUIDFromBytes(("OfflinePlayer:" + nick).getBytes(StandardCharsets.UTF_8));
     }
 
-    public static List<String> build(Manifest m, File java, File gameDir, String os, String nick, int memoryMb) throws IOException {
+    public static List<String> build(Manifest m, Profile p, LaunchTarget t) throws IOException {
         List<String> cmd = new ArrayList<String>();
-        cmd.add(java.getPath());
-        cmd.add("-Xms" + memoryMb + "M");
-        cmd.add("-Xmx" + memoryMb + "M");
+        cmd.add(t.java.getPath());
+        cmd.add("-Xms" + t.memoryMb + "M");
+        cmd.add("-Xmx" + t.memoryMb + "M");
         cmd.addAll(m.java.flags);
         cmd.add("-XX:+DisableAttachMechanism");
-        cmd.add("-Djava.library.path=" + new File(gameDir, Natives.DIR).getAbsolutePath());
-        cmd.add("-javaagent:" + agent(m, gameDir, os).getAbsolutePath() + "=server=" + m.server.publicKey + ",mapping=" + m.agentMapping);
+        cmd.add("-Djava.library.path=" + new File(t.profileDir, Natives.DIR).getAbsolutePath());
+        cmd.add("-javaagent:" + agent(p, t).getAbsolutePath() + "=servers=" + serverKeys(m) + ",mapping=" + p.agentMapping);
         cmd.add("-cp");
-        cmd.add(classpath(m, gameDir, os));
-        cmd.add(m.mainClass);
-        Map<String, String> vars = variables(m, gameDir, nick);
-        for (String arg : m.gameArguments) cmd.add(substitute(arg, vars));
-        if (m.server.host != null) {
-            cmd.add("--server");
-            cmd.add(m.server.host);
-            cmd.add("--port");
-            cmd.add(Integer.toString(m.server.port));
-        }
+        cmd.add(classpath(p, t));
+        cmd.add(p.mainClass);
+        Map<String, String> vars = variables(m, p, t);
+        for (String arg : p.gameArguments) cmd.add(substitute(arg, vars));
         return cmd;
     }
 
-    private static File agent(Manifest m, File gameDir, String os) throws IOException {
-        for (ManifestFile f : m.files) {
-            if (ManifestFile.AGENT.equals(f.kind) && f.forOs(os)) return Paths.resolve(gameDir, f.path);
-        }
-        throw new IOException("manifest has no agent");
-    }
-
-    private static String classpath(Manifest m, File gameDir, String os) throws IOException {
+    static String serverKeys(Manifest m) {
         StringBuilder sb = new StringBuilder();
-        for (ManifestFile f : m.files) {
-            if (!f.onClasspath() || !f.forOs(os)) continue;
-            if (sb.length() > 0) sb.append(File.pathSeparatorChar);
-            sb.append(Paths.resolve(gameDir, f.path).getAbsolutePath());
+        for (ServerEntry s : m.servers) {
+            if (sb.length() > 0) sb.append(KEY_SEPARATOR);
+            sb.append(s.publicKey);
         }
         return sb.toString();
     }
 
-    private static Map<String, String> variables(Manifest m, File gameDir, String nick) {
+    private static File agent(Profile p, LaunchTarget t) throws IOException {
+        for (ManifestFile f : p.files) {
+            if (f.is(ManifestFile.AGENT) && f.forOs(t.os)) return Paths.resolve(t.profileDir, f.path);
+        }
+        throw new IOException("profile " + p.id + " has no agent");
+    }
+
+    private static String classpath(Profile p, LaunchTarget t) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        for (ManifestFile f : p.files) {
+            if (!f.forOs(t.os) || !(f.is(ManifestFile.LIBRARY) || f.is(ManifestFile.GAME))) continue;
+            String path = f.is(ManifestFile.GAME) && p.patchedJar ? JarMod.patchedPath(f) : f.path;
+            if (sb.length() > 0) sb.append(File.pathSeparatorChar);
+            sb.append(Paths.resolve(t.profileDir, path).getAbsolutePath());
+        }
+        return sb.toString();
+    }
+
+    private static Map<String, String> variables(Manifest m, Profile p, LaunchTarget t) {
+        String indexId = p.assetIndex == null ? "" : p.assetIndex.id;
         Map<String, String> v = new HashMap<String, String>();
-        v.put("auth_player_name", nick);
-        v.put("auth_uuid", offlineUuid(nick).toString().replace("-", ""));
+        v.put("auth_player_name", t.nick);
+        v.put("auth_uuid", offlineUuid(t.nick).toString().replace("-", ""));
         v.put("auth_access_token", "0");
+        v.put("auth_session", "0");
         v.put("user_properties", "{}");
         v.put("user_type", "legacy");
-        v.put("version_name", m.name == null ? "CraftWar" : m.name);
-        v.put("game_directory", gameDir.getAbsolutePath());
-        v.put("assets_root", new File(gameDir, "assets").getAbsolutePath());
-        v.put("assets_index_name", m.assetIndex == null ? "" : m.assetIndex.id);
+        v.put("version_name", m.name == null ? p.id : m.name + " " + p.id);
+        v.put("game_directory", t.profileDir.getAbsolutePath());
+        v.put("assets_root", t.assetsDir.getAbsolutePath());
+        v.put("assets_index_name", indexId);
+        v.put("game_assets", Assets.virtualDir(t.assetsDir, indexId).getAbsolutePath());
         return v;
     }
 

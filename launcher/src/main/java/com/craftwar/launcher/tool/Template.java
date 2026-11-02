@@ -1,21 +1,32 @@
 package com.craftwar.launcher.tool;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.craftwar.launcher.manifest.Manifest;
+import com.craftwar.launcher.manifest.ServerEntry;
 
 final class Template {
 
-    int version;
     String name;
-    String versionId;
     String cdnBaseUrl;
     String agentJar;
-    String agentMapping = "forge-1.8.9";
-    Manifest.Server server = new Manifest.Server();
     Manifest.Consent consent = new Manifest.Consent();
     Manifest.Java java = new Manifest.Java();
+    List<ServerEntry> servers = new ArrayList<ServerEntry>();
+    List<ProfileTemplate> profiles = new ArrayList<ProfileTemplate>();
 
-    String cdn(String path) {
-        String base = cdnBaseUrl.endsWith("/") ? cdnBaseUrl : cdnBaseUrl + "/";
-        return base + path;
+    static final class ProfileTemplate {
+        String id;
+        String label;
+        String instance;
+        String versionId;
+        String agentMapping;
+    }
+
+    static File relativeTo(File templateFile, String path) {
+        File f = new File(path);
+        return f.isAbsolute() ? f : new File(templateFile.getAbsoluteFile().getParentFile(), path);
     }
 }
