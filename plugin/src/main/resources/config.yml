@@ -39,3 +39,13 @@ retention:
 grim:
   enabled: true
   event-class: ac.grim.grimac.api.events.FlagEvent
+
+placeholders:
+  attested-yes: "sim"
+  attested-no: "nao"
+  tag-attested: "&a✔"
+  tag-not-attested: "&c✖"
+  agent-ok: "OK"
+  agent-degraded: "DEGRADADO"
+  agent-disabled: "DESLIGADO"
+  agent-missing: "SEM AGENTE"

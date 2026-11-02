@@ -98,9 +98,22 @@ public class PatchesTest {
 
     @Test
     public void launchClassLoaderGetsExclusion() throws Exception {
-        LoaderExclusionPatch patch = new LoaderExclusionPatch();
-        byte[] patched = Patcher.apply(FakeGame.launchClassLoader(), Collections.<Patch>singletonList(patch));
-        Class<?> c = new FakeGame().add(LoaderExclusionPatch.OWNER, patched).loadClass(LoaderExclusionPatch.OWNER.replace('/', '.'));
+        assertExclusion(LoaderExclusionPatch.OWNER, Patches.all(mapping()));
+    }
+
+    @Test
+    public void mappingCanNameEveryLoaderToExclude() throws Exception {
+        Properties p = new Properties();
+        p.load(PatchesTest.class.getResourceAsStream("/mappings/forge-1.8.9.properties"));
+        p.setProperty("loader.classes", LoaderExclusionPatch.OWNER + ",cpw/mods/fml/relauncher/RelaunchClassLoader");
+        List<Patch> patches = Patches.all(Mapping.of("test", p));
+        assertExclusion("cpw/mods/fml/relauncher/RelaunchClassLoader", patches);
+        assertExclusion(LoaderExclusionPatch.OWNER, patches);
+    }
+
+    private static void assertExclusion(String owner, List<Patch> patches) throws Exception {
+        byte[] patched = Patcher.apply(FakeGame.launchClassLoader(owner), patches);
+        Class<?> c = new FakeGame().add(owner, patched).loadClass(owner.replace('/', '.'));
         c.newInstance();
         assertEquals(LoaderExclusionPatch.PREFIX, c.getField("excluded").get(null));
     }

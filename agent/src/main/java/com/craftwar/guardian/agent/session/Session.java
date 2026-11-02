@@ -104,7 +104,7 @@ public final class Session implements Runnable, Sender {
     }
 
     private void handle(Object event) {
-        if (event == CONNECTED) reset(new ClientHandshake(config.serverKey()));
+        if (event == CONNECTED) reset(new ClientHandshake(config.serverKeys()));
         else if (event == DISCONNECTED) reset(null);
         else frame((byte[]) event);
     }

@@ -5,6 +5,7 @@ import org.bukkit.plugin.Plugin;
 
 import com.craftwar.guardian.plugin.cases.Cases;
 import com.craftwar.guardian.plugin.evidence.EvidenceStore;
+import com.craftwar.guardian.plugin.papi.BadgeBoard;
 import com.craftwar.guardian.plugin.request.Requests;
 import com.craftwar.guardian.plugin.session.Sessions;
 import com.craftwar.guardian.plugin.track.Tracker;
@@ -16,6 +17,7 @@ public final class Guardian {
     public final ServerIdentity identity;
     public final Sessions sessions = new Sessions();
     public final Requests requests = new Requests();
+    public final BadgeBoard badges = new BadgeBoard();
     public final Tracker tracker;
     public final EvidenceStore evidence;
     public Cases cases;

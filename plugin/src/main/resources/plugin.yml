@@ -1,7 +1,7 @@
 name: Guardian
 main: com.craftwar.guardian.plugin.GuardianPlugin
 version: ${project.version}
-softdepend: [GrimAC]
+softdepend: [GrimAC, PlaceholderAPI]
 commands:
   guardian:
     description: Ferramentas de verificacao da staff

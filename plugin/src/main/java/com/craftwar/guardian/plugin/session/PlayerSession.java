@@ -26,12 +26,12 @@ public final class PlayerSession {
     ServerHandshake handshake;
     SecureChannel channel;
     PermissionAttachment attachment;
-    boolean attested;
+    volatile boolean attested;
     boolean silent;
     boolean warned;
     long lastHeartbeatMillis;
     Context context;
-    Heartbeat lastHeartbeat;
+    volatile Heartbeat lastHeartbeat;
     public long lastAutoBoxMillis;
 
     PlayerSession(Player player, long joinedMillis) {

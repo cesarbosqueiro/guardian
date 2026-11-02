@@ -29,6 +29,7 @@ public final class ConnectionListener implements Listener {
     public void onQuit(PlayerQuitEvent e) {
         g.sessions.close(e.getPlayer().getUniqueId());
         g.requests.dropAll(e.getPlayer().getUniqueId());
+        g.badges.remove(e.getPlayer().getUniqueId());
     }
 
     @EventHandler

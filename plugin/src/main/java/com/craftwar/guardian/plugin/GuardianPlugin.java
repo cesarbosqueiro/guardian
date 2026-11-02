@@ -14,6 +14,8 @@ import com.craftwar.guardian.plugin.check.RestrictedMode;
 import com.craftwar.guardian.plugin.command.GuardianCommand;
 import com.craftwar.guardian.plugin.evidence.EvidenceStore;
 import com.craftwar.guardian.plugin.evidence.Retention;
+import com.craftwar.guardian.plugin.papi.PlaceholderHook;
+import com.craftwar.guardian.plugin.papi.PlaceholderTexts;
 import com.craftwar.guardian.plugin.request.Notifier;
 import com.craftwar.guardian.plugin.request.Requester;
 import com.craftwar.guardian.plugin.session.Attestation;
@@ -64,6 +66,7 @@ public final class GuardianPlugin extends JavaPlugin {
         pm.registerEvents(new MultiAuraCheck(g), this);
         pm.registerEvents(new RestrictedMode(g), this);
         if (GrimBridge.install(g)) getLogger().info("Grim integration active");
+        if (PlaceholderHook.install(this, g.badges, new PlaceholderTexts(getConfig()))) getLogger().info("PlaceholderAPI expansion %guardian_*% registered");
         getCommand("guardian").setExecutor(new GuardianCommand(g, requester));
 
         getServer().getScheduler().runTaskTimer(this, g.tracker, 1L, 1L);

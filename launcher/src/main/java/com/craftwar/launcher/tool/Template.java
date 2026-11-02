@@ -23,6 +23,7 @@ final class Template {
         String instance;
         String versionId;
         String agentMapping;
+        String cdnBaseUrl;
     }
 
     static File relativeTo(File templateFile, String path) {

@@ -44,7 +44,8 @@ final class ManifestBuilder {
 
     private Profile profile(Template.ProfileTemplate pt, File agent) throws IOException {
         File instance = Template.relativeTo(templateFile, pt.instance);
-        Staging staging = new Staging(outDir, template.cdnBaseUrl, pt.id);
+        boolean ownRepository = pt.cdnBaseUrl != null && !pt.cdnBaseUrl.isEmpty();
+        Staging staging = new Staging(outDir, ownRepository ? pt.cdnBaseUrl : template.cdnBaseUrl, pt.id, ownRepository);
         VersionChain chain = VersionChain.load(new File(instance, "versions"), pt.versionId);
         Profile p = new Profile();
         p.id = pt.id;

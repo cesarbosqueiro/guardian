@@ -5,8 +5,8 @@ import org.objectweb.asm.Opcodes;
 
 public final class SwapPatch extends Patch {
 
-    public SwapPatch() {
-        super("swap", "org/lwjgl/opengl/Display", "update", "(Z)V");
+    public SwapPatch(String owner) {
+        super("swap", owner, "update", "(Z)V");
     }
 
     @Override

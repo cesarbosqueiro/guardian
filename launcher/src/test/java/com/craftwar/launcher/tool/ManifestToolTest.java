@@ -55,7 +55,7 @@ public class ManifestToolTest {
         + "\"servers\":[{\"id\":\"pvp\",\"name\":\"PvP\",\"host\":\"pvp.test\",\"port\":25565,\"publicKey\":\"%s\"},"
         + "{\"id\":\"rankup\",\"name\":\"RankUP\",\"host\":\"rankup.test\",\"port\":25566,\"publicKey\":\"%s\"}],"
         + "\"profiles\":[{\"id\":\"1.8.9\",\"label\":\"1.8.9 PvP\",\"instance\":\"i189\",\"versionId\":\"forge\",\"agentMapping\":\"forge-1.8.9\"},"
-        + "{\"id\":\"1.5.2\",\"label\":\"1.5.2\",\"instance\":\"i152\",\"versionId\":\"1.5.2\",\"agentMapping\":\"forge-1.5.2\"}],"
+        + "{\"id\":\"1.5.2\",\"label\":\"1.5.2\",\"instance\":\"i152\",\"versionId\":\"1.5.2\",\"agentMapping\":\"forge-1.5.2\",\"cdnBaseUrl\":\"https://raw.githubusercontent.com/cw/pack-152/main/\"}],"
         + "\"consent\":{\"version\":1,\"text\":\"aceite\"},\"java\":{\"flags\":[\"-XX:+UseG1GC\"]}}";
 
     static File write(File root, String rel, String content) throws IOException {
@@ -108,6 +108,7 @@ public class ManifestToolTest {
         assertTrue(new File(out, "files/1.8.9/mods/OptiFine.jar").isFile());
         assertTrue(new File(out, "files/1.5.2/mods/OptiFine-152.jar").isFile());
         assertEquals("https://cdn.test/files/1.8.9/mods/OptiFine.jar", find(modern, "mods/OptiFine.jar").url);
+        assertEquals("https://raw.githubusercontent.com/cw/pack-152/main/mods/OptiFine-152.jar", find(legacy, "mods/OptiFine-152.jar").url);
         assertEquals("https://launcher.mojang.com/client.jar", find(modern, "versions/1.8.9/1.8.9.jar").url);
     }
 
