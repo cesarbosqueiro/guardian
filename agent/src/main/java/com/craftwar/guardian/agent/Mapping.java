@@ -40,4 +40,9 @@ public final class Mapping {
         if (v == null) throw new IllegalStateException("mapping " + id + " missing " + key);
         return v;
     }
+
+    public String get(String key, String fallback) {
+        String v = names.getProperty(key);
+        return v == null || v.trim().isEmpty() ? fallback : v.trim();
+    }
 }

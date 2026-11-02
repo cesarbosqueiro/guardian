@@ -5,21 +5,27 @@ import java.util.List;
 
 public final class Manifest {
 
+    public static final int FORMAT = 2;
+
     public int version;
     public String name;
-    public Server server = new Server();
     public Consent consent = new Consent();
     public Java java = new Java();
-    public String mainClass;
-    public List<String> gameArguments = new ArrayList<String>();
-    public String agentMapping = "forge-1.8.9";
-    public AssetIndex assetIndex;
-    public List<ManifestFile> files = new ArrayList<ManifestFile>();
+    public List<ServerEntry> servers = new ArrayList<ServerEntry>();
+    public List<Profile> profiles = new ArrayList<Profile>();
 
-    public static final class Server {
-        public String host;
-        public int port = 25565;
-        public String publicKey;
+    public Profile profile(String id) {
+        for (Profile p : profiles) {
+            if (p.id.equals(id)) return p;
+        }
+        return profiles.get(0);
+    }
+
+    public ServerEntry server(String id) {
+        for (ServerEntry s : servers) {
+            if (s.id.equals(id)) return s;
+        }
+        return servers.get(0);
     }
 
     public static final class Consent {

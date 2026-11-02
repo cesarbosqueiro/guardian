@@ -81,8 +81,7 @@ final class FakeGame extends ClassLoader {
         return cw.toByteArray();
     }
 
-    static byte[] launchClassLoader() {
-        String owner = LoaderExclusionPatch.OWNER;
+    static byte[] launchClassLoader(String owner) {
         ClassWriter cw = begin(owner, "java/lang/Object");
         cw.visitField(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "excluded", "Ljava/lang/String;", null, null).visitEnd();
         MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "addClassLoaderExclusion", "(Ljava/lang/String;)V", null, null);

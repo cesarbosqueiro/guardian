@@ -13,11 +13,18 @@ final class PatchingVisitor extends ClassVisitor {
 
     private final List<Patch> patches;
     private final Set<String> fields = new HashSet<String>();
+    private String className;
     private boolean changed;
 
     PatchingVisitor(ClassVisitor next, List<Patch> patches) {
         super(Opcodes.ASM9, next);
         this.patches = patches;
+    }
+
+    @Override
+    public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+        className = name;
+        super.visit(version, access, name, signature, superName, interfaces);
     }
 
     @Override
@@ -31,7 +38,7 @@ final class PatchingVisitor extends ClassVisitor {
         MethodVisitor mv = super.visitMethod(access, name, descriptor, signature, exceptions);
         if ((access & (Opcodes.ACC_ABSTRACT | Opcodes.ACC_NATIVE)) != 0) return mv;
         for (Patch p : patches) {
-            if (p.matches(name, descriptor) && fields.containsAll(p.requiredFields())) {
+            if (p.owner().equals(className) && p.matches(name, descriptor) && fields.containsAll(p.requiredFields())) {
                 mv = new PatchAdapter(mv, access, name, descriptor, p);
                 p.markApplied();
                 changed = true;

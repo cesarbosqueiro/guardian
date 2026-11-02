@@ -17,6 +17,7 @@ public final class Attestation {
         s.silent = false;
         s.lastHeartbeatMillis = System.currentTimeMillis();
         if (s.attachment == null) s.attachment = s.player.addAttachment(g.plugin, PERMISSION, true);
+        g.badges.attestation(s);
     }
 
     void revoke(PlayerSession s) {
@@ -25,5 +26,6 @@ public final class Attestation {
             s.player.removeAttachment(s.attachment);
             s.attachment = null;
         }
+        g.badges.attestation(s);
     }
 }

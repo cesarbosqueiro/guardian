@@ -7,12 +7,21 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-final class ModsLock {
+public final class ModsLock {
 
     private static final String MODS = "mods";
     private static final String QUARANTINE = "mods-disabled";
+    private static final String[] ARCHIVES = {".jar", ".zip", ".litemod", ".class"};
 
     private ModsLock() {
+    }
+
+    public static boolean isArchive(String name) {
+        String lower = name.toLowerCase(java.util.Locale.ROOT);
+        for (String ext : ARCHIVES) {
+            if (lower.endsWith(ext)) return true;
+        }
+        return false;
     }
 
     static List<String> enforce(File gameDir, List<String> allowedPaths) throws IOException {
@@ -33,7 +42,7 @@ final class ModsLock {
                 continue;
             }
             String rel = gameDir.toPath().relativize(f.toPath()).toString().replace('\\', '/');
-            if (allowed.contains(rel)) continue;
+            if (allowed.contains(rel) || !isArchive(rel)) continue;
             File target = new File(new File(gameDir, QUARANTINE), rel.substring(MODS.length() + 1));
             Files2.mkdirs(target.getParentFile());
             Files2.replace(f, target);

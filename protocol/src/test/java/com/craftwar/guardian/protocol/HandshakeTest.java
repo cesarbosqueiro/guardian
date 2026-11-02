@@ -29,6 +29,22 @@ public class HandshakeTest {
         assertEquals(MessageType.REQUEST, g.type);
     }
 
+    @Test
+    public void acceptsAnyTrustedServerOfTheList() {
+        KeyPair other = Ec.newKeyPair();
+        ServerHandshake server = new ServerHandshake(identity.getPrivate());
+        ClientHandshake client = new ClientHandshake(java.util.Arrays.asList(other.getPublic(), identity.getPublic()));
+        SecureChannel up = server.accept(client.reply(server.hello()));
+        assertEquals(identity.getPublic(), client.matchedServer());
+        assertEquals(MessageType.HEARTBEAT, up.open(client.channel().seal(MessageType.HEARTBEAT, new byte[0])).type);
+    }
+
+    @Test(expected = ProtocolException.class)
+    public void rejectsServerOutsideTheList() {
+        ServerHandshake impostor = new ServerHandshake(Ec.newKeyPair().getPrivate());
+        new ClientHandshake(java.util.Arrays.asList(identity.getPublic(), Ec.newKeyPair().getPublic())).reply(impostor.hello());
+    }
+
     @Test(expected = ProtocolException.class)
     public void rejectsForgedServer() {
         ServerHandshake impostor = new ServerHandshake(Ec.newKeyPair().getPrivate());

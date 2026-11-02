@@ -8,6 +8,8 @@ public final class ManifestFile {
     public static final String MOD = "mod";
     public static final String AGENT = "agent";
     public static final String CONFIG = "config";
+    public static final String JARMOD = "jarmod";
+    public static final String CLASSMOD = "classmod";
 
     public String path;
     public String url;
@@ -28,8 +30,8 @@ public final class ManifestFile {
         this.os = os;
     }
 
-    public boolean onClasspath() {
-        return LIBRARY.equals(kind) || GAME.equals(kind);
+    public boolean is(String k) {
+        return k.equals(kind);
     }
 
     public boolean forOs(String current) {

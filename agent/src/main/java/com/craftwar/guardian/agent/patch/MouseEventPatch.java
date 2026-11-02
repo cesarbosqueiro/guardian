@@ -5,8 +5,8 @@ import org.objectweb.asm.Opcodes;
 
 public final class MouseEventPatch extends Patch {
 
-    public MouseEventPatch() {
-        super("mouse-event", "org/lwjgl/input/Mouse", "next", "()Z");
+    public MouseEventPatch(String owner) {
+        super("mouse-event", owner, "next", "()Z");
     }
 
     @Override

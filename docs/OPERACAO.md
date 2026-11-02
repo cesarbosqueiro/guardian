@@ -8,17 +8,28 @@
 4. Deixe `enforce-restricted-mode: false` durante 2 a 4 semanas de shadow mode. Ligue depois de medir os falsos positivos.
 5. Plugins de economia, loja e warps: exijam `craftwar.guardian.attested`.
 
-## 2. Instância de referência
+## 2. Instâncias de referência (uma por versão)
 
-Numa máquina limpa, com o launcher oficial da Mojang ou instalação manual:
+Cada versão do launcher é um **perfil** com instância própria. O jogador escolhe a versão na tela; o launcher baixa só os arquivos daquele perfil para `game/<perfil>/`. Os assets da Mojang ficam compartilhados em `game/assets/`.
 
-1. Instale o Forge `1.8.9-11.15.1.2318` numa pasta (`instancia/`).
-2. Coloque os mods em `instancia/mods/`: `craftwar-client-0.1.0.jar` + OptiFine.
-3. Opcional: `instancia/config-defaults/` com `options.txt`, `optionsof.txt` e `config/*.cfg`. Esses arquivos são escritos só se o jogador ainda não tiver o arquivo.
+```
+instancias/
+  1.8.9/                     .minecraft com o Forge 1.8.9-11.15.1.2318 instalado
+    versions/1.8.9/  versions/1.8.9-forge.../  libraries/
+    mods/                    craftwar-client, OptiFine, bspkrsCore, ArmorStatusHUD, StatusEffectHUD, macro
+    config-defaults/         options.txt, optionsof.txt, config/*.cfg (escritos só se o jogador não tiver)
+  1.5.2/                     .minecraft com o 1.5.2 vanilla rodado uma vez
+    versions/1.5.2/
+    jarmods/                 forge-1.5.2-7.8.1.738-universal.zip (aplicado no jar pelo launcher, na ordem do nome)
+    mods/
+```
 
-**OptiFine:** a licença proíbe redistribuir sem permissão do autor, mesmo em launcher privado: você está entregando o arquivo para os seus jogadores. Peça permissão ao sp614x ou não o hospede (nesse caso, o jogador instala e a trava de `mods/` precisa permitir). Sem permissão, hospedar no seu CDN é violação.
-
-O client jar da Mojang e os assets **não** são hospedados por você: o manifesto aponta para os servidores da Mojang.
+- **Mods fora da pasta `mods/`:** por padrão (`modsOnClasspath`, ligado), todo `.jar`/`.zip` de `instancia/<v>/mods/` vai para `game/<v>/guardian/mods/` no jogador e entra no `-cp`. O FML acha mods no classpath, nas duas versões. O que não é jar (`.cfg`, `.json`, `.txt`) fica em `mods/` como configuração padrão, escrita só se o jogador ainda não tiver.
+- **Coremods e tweakers:** o `ManifestTool` lê o `META-INF/MANIFEST.MF` de cada jar. `TweakClass` vira `--tweakClass` no fim do comando; `FMLCorePlugin` vira `-Dfml.coreMods.load`. É o que a pasta `mods/` fazia sozinha e o classpath não faz. Se um mod pedir um tweaker que não declara no manifest, ponha `"modsOnClasspath": false` no perfil e ele volta para `mods/`.
+- **Trava:** qualquer `.jar`/`.zip`/`.litemod` que aparecer em `game/<v>/mods/` vai para `mods-disabled/`. Configurações não são tocadas.
+- O client jar e os assets **não** são hospedados por você: o manifesto aponta para a Mojang.
+- **Jar-mod (1.5.2):** o launcher baixa o `1.5.2.jar` da Mojang e grava `1.5.2-patched.jar` localmente com o conteúdo de `jarmods/` por cima, sem `META-INF/`. Ninguém redistribui o cliente.
+- **OptiFine:** hospedar exige permissão do sp614x.
 
 ## 3. Manifesto
 
@@ -29,12 +40,28 @@ java -cp launcher/target/CraftWar.jar com.craftwar.launcher.tool.ManifestTool ke
 Cole o `manifestKey=` impresso em `launcher/src/main/resources/launcher.properties`, ajuste `manifestUrl` e rebuilde o launcher.
 
 ```bash
-cp tools/manifest-template.example.json template.json
+cp tools/manifest-template.example.json tools/template.json   # caminhos relativos ao template
 java -cp launcher/target/CraftWar.jar com.craftwar.launcher.tool.ManifestTool \
-    build instancia/ template.json chaves/manifest.key saida/
+    build tools/template.json chaves/manifest.key saida/
 ```
 
-Publique `saida/` inteira na URL de `cdnBaseUrl`, mantendo `manifest.json` e `manifest.json.sig` em `manifestUrl`. Qualquer mudança de mod ou flag é rebuild + republicação; o launcher do jogador não precisa mudar.
+- `servers[]`: a lista que aparece no jogo, cada um com a chave de `/guardian key` **daquele** servidor. O agente confia em todas.
+- `profiles[]`: uma entrada por versão, com `instance`, `versionId` e `agentMapping`.
+- Um manifesto só, assinado uma vez, com todos os perfis.
+
+### Onde os arquivos ficam hospedados
+
+`saida/files/<perfil>/` tem o que precisa ir para a web. Cada perfil pode ter **o próprio repositório**:
+
+- sem `cdnBaseUrl` no perfil: URL = `cdnBaseUrl` global + `<perfil>/` + caminho. Publique `saida/files/` inteira.
+- com `cdnBaseUrl` no perfil: URL = essa base + caminho. Publique o **conteúdo** de `saida/files/<perfil>/` na raiz desse repositório.
+
+GitHub serve: um repositório por versão, com a URL raw (`https://raw.githubusercontent.com/<dono>/<repo>/main/`). Duas regras:
+
+1. **Sem Git LFS.** O raw de um arquivo em LFS devolve o ponteiro, não o jar, e o SHA-1 não bate. Arquivos até 100 MB vão direto (OptiFine e Forge universal ficam bem abaixo).
+2. **Releases não servem** para a árvore `libraries/...`: asset de release não tem pasta.
+
+`manifest.json` e `manifest.json.sig` vão em `manifestUrl`, que pode ser outro repositório. Mudou mod ou flag: rebuild + republicação, sem mexer no launcher do jogador.
 
 ## 4. Distribuição do launcher
 
@@ -81,9 +108,25 @@ As primeiras linhas de `game/logs/launcher-game.log` são o comando inteiro, um 
 
 As evidências ficam em `plugins/Guardian/evidence/<uuid>/`.
 
+### Tag no chat (LegendChat)
+
+Com o PlaceholderAPI instalado, o plugin registra a expansão `guardian`:
+
+| Placeholder | Valor |
+|---|---|
+| `%guardian_attested%` | `sim` / `nao` |
+| `%guardian_tag%` | `&a✔` / `&c✖` |
+| `%guardian_agent%` | `OK` / `DEGRADADO` / `DESLIGADO` / `SEM AGENTE` |
+| `%guardian_score%` | score atual (inteiro) |
+
+Os textos ficam em `placeholders:` no `config.yml`. No LegendChat, ponha `%guardian_tag%` no formato do canal. Os valores vêm de uma cópia atualizada a cada segundo na main thread, então podem ser lidos do chat assíncrono sem risco.
+
+Teste: `/papi parse me %guardian_attested%` com e sem o launcher.
+
 ## 6. Primeiro teste em servidor real
 
 1. Conecte com o launcher e confira `/guardian info`: atestado `sim`, agente `OK`.
 2. Se o agente aparecer `DEGRADADO`, um nome SRG do mapping está errado. O `findings.log` diz qual patch falhou.
 3. Se ficar `nao` atestado: confira se o FML entrega o `S3F` ao canal `CW|Guard`. É o ponto não verificado do mod.
-4. Rode `/guardian box` e `/guardian ss` em você mesmo e abra os CSVs.
+4. Com dois servidores na lista: os dois aparecem no multiplayer, "Adicionar" e "Conexão direta" não existem, e o agente atesta nos dois.
+5. Rode `/guardian box` e `/guardian ss` em você mesmo e abra os CSVs.

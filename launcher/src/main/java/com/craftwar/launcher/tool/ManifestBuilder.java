@@ -14,42 +14,58 @@ import com.google.gson.JsonObject;
 
 import com.craftwar.launcher.manifest.Manifest;
 import com.craftwar.launcher.manifest.ManifestFile;
+import com.craftwar.launcher.manifest.Profile;
 
 final class ManifestBuilder {
 
     private static final String AGENT_PATH = "guardian/guardian-agent.jar";
 
-    private final File instance;
+    private final File templateFile;
     private final Template template;
-    private final Staging staging;
+    private final File outDir;
 
-    ManifestBuilder(File instance, Template template, Staging staging) {
-        this.instance = instance;
+    ManifestBuilder(File templateFile, Template template, File outDir) {
+        this.templateFile = templateFile;
         this.template = template;
-        this.staging = staging;
+        this.outDir = outDir;
     }
 
     Manifest build() throws IOException {
-        VersionChain chain = VersionChain.load(new File(instance, "versions"), template.versionId);
         Manifest m = new Manifest();
-        m.version = template.version;
+        m.version = Manifest.FORMAT;
         m.name = template.name;
-        m.server = template.server;
         m.consent = template.consent;
         m.java = template.java;
-        m.agentMapping = template.agentMapping;
-        m.mainClass = chain.first("mainClass");
-        m.gameArguments = new ArrayList<String>(Arrays.asList(chain.first("minecraftArguments").trim().split("\\s+")));
-        m.assetIndex = assetIndex(chain.root().getAsJsonObject("assetIndex"));
-        m.files.addAll(new Libraries(instance, template, staging).resolve(chain));
-        m.files.add(client(chain));
-        m.files.addAll(tree("mods", ManifestFile.MOD, ""));
-        m.files.addAll(tree("config-defaults", ManifestFile.CONFIG, null));
-        m.files.add(staging.stage(new File(template.agentJar), AGENT_PATH, template.cdn(AGENT_PATH), ManifestFile.AGENT, null));
+        m.servers = template.servers;
+        File agent = Template.relativeTo(templateFile, template.agentJar);
+        for (Template.ProfileTemplate pt : template.profiles) m.profiles.add(profile(pt, agent));
         return m;
     }
 
-    private ManifestFile client(VersionChain chain) throws IOException {
+    private Profile profile(Template.ProfileTemplate pt, File agent) throws IOException {
+        File instance = Template.relativeTo(templateFile, pt.instance);
+        boolean ownRepository = pt.cdnBaseUrl != null && !pt.cdnBaseUrl.isEmpty();
+        Staging staging = new Staging(outDir, ownRepository ? pt.cdnBaseUrl : template.cdnBaseUrl, pt.id, ownRepository);
+        VersionChain chain = VersionChain.load(new File(instance, "versions"), pt.versionId);
+        Profile p = new Profile();
+        p.id = pt.id;
+        p.label = pt.label;
+        p.agentMapping = pt.agentMapping;
+        p.mainClass = chain.first("mainClass");
+        p.gameArguments = new ArrayList<String>(Arrays.asList(chain.first("minecraftArguments").trim().split("\\s+")));
+        p.assetIndex = assetIndex(chain.root().getAsJsonObject("assetIndex"));
+        p.files.addAll(new Libraries(instance, staging).resolve(chain));
+        p.files.add(client(chain));
+        List<ManifestFile> jarMods = tree(instance, staging, "jarmods", ManifestFile.JARMOD, true);
+        p.patchedJar = !jarMods.isEmpty();
+        p.files.addAll(jarMods);
+        new ModScanner(staging, pt.modsOnClasspath == null || pt.modsOnClasspath).scan(instance, p);
+        p.files.addAll(tree(instance, staging, "config-defaults", ManifestFile.CONFIG, false));
+        p.files.add(staging.stage(agent, AGENT_PATH, ManifestFile.AGENT, null));
+        return p;
+    }
+
+    private static ManifestFile client(VersionChain chain) throws IOException {
         String id = chain.jarId();
         String rel = "versions/" + id + "/" + id + ".jar";
         JsonObject downloads = chain.root().getAsJsonObject("downloads");
@@ -60,7 +76,7 @@ final class ManifestBuilder {
         throw new IOException("vanilla version json has no client download; refusing to redistribute the client jar");
     }
 
-    private List<ManifestFile> tree(String dirName, String kind, String keepPrefix) throws IOException {
+    private static List<ManifestFile> tree(File instance, Staging staging, String dirName, String kind, boolean keepPrefix) throws IOException {
         File dir = new File(instance, dirName);
         List<ManifestFile> out = new ArrayList<ManifestFile>();
         if (!dir.isDirectory()) return out;
@@ -68,10 +84,9 @@ final class ManifestBuilder {
         try (Stream<Path> walk = Files.walk(dir.toPath())) {
             files = walk.filter(Files::isRegularFile).sorted().collect(Collectors.toList());
         }
-        for (Path p : files) {
-            String inside = dir.toPath().relativize(p).toString().replace('\\', '/');
-            String rel = keepPrefix == null ? inside : dirName + "/" + inside;
-            out.add(staging.stage(p.toFile(), rel, template.cdn(rel), kind, null));
+        for (Path f : files) {
+            String inside = dir.toPath().relativize(f).toString().replace('\\', '/');
+            out.add(staging.stage(f.toFile(), keepPrefix ? dirName + "/" + inside : inside, kind, null));
         }
         return out;
     }

@@ -11,6 +11,7 @@ import com.craftwar.client.hud.ClientSettings;
 import com.craftwar.client.hud.ClicksPerSecond;
 import com.craftwar.client.hud.HudRenderer;
 import com.craftwar.client.hud.ToggleSprint;
+import com.craftwar.client.servers.ServerListLock;
 
 @Mod(modid = CraftWarClient.ID, name = "CraftWar Client", version = "0.1.0", clientSideOnly = true, acceptableRemoteVersions = "*")
 public final class CraftWarClient {
@@ -31,6 +32,7 @@ public final class CraftWarClient {
         MinecraftForge.EVENT_BUS.register(cps);
         MinecraftForge.EVENT_BUS.register(sprint);
         MinecraftForge.EVENT_BUS.register(new HudRenderer(settings, cps, sprint));
+        MinecraftForge.EVENT_BUS.register(new ServerListLock());
         GuardianLink link = GuardianLink.create();
         if (link != null) MinecraftForge.EVENT_BUS.register(link);
     }

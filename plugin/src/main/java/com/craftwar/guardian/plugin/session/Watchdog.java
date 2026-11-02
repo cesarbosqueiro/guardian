@@ -17,6 +17,7 @@ public final class Watchdog implements Runnable {
     public void run() {
         long now = System.currentTimeMillis();
         for (PlayerSession s : g.sessions.all()) {
+            g.badges.publish(s, g.cases.file(s.id).score(now));
             if (s.attested && now - s.lastHeartbeatMillis > g.settings.silenceMillis()) {
                 s.silent = true;
                 attestation.revoke(s);

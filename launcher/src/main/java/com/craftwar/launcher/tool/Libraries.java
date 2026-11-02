@@ -15,12 +15,10 @@ import com.craftwar.launcher.manifest.ManifestFile;
 final class Libraries {
 
     private final File instance;
-    private final Template template;
     private final Staging staging;
 
-    Libraries(File instance, Template template, Staging staging) {
+    Libraries(File instance, Staging staging) {
         this.instance = instance;
-        this.template = template;
         this.staging = staging;
     }
 
@@ -79,7 +77,7 @@ final class Libraries {
             if (ManifestFile.NATIVES.equals(kind)) return null;
             throw new IOException("library not found locally and has no download metadata: " + rel);
         }
-        return staging.stage(local, rel, template.cdn(rel), kind, os);
+        return staging.stage(local, rel, kind, os);
     }
 
     private static JsonObject downloads(JsonObject lib, String key) {
