@@ -34,6 +34,13 @@
             <artifactId>spigot-api</artifactId>
             <version>1.8.8-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
+            <exclusions>
+                <!-- net.md-5:bungeecord-chat:1.8-SNAPSHOT nao existe mais no nexus do Spigot; nenhum fonte usa net.md_5.bungee.* -->
+                <exclusion>
+                    <groupId>net.md-5</groupId>
+                    <artifactId>bungeecord-chat</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

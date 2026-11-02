@@ -68,7 +68,8 @@ public final class LauncherApp {
             if (!removed.isEmpty()) view.notice(removed.size() + " mod(s) nao autorizados movidos para mods-disabled.");
             view.stage("Iniciando o jogo");
             int memory = Math.max(m.java.minimumMemoryMb, memoryMb);
-            GameProcess.start(LaunchCommand.build(m, Platform.javaExecutable(), gameDir, os, nick, memory), gameDir);
+            File java = GameJava.find(Platform.launcherDir(), settings.javaPath());
+            GameProcess.start(LaunchCommand.build(m, java, gameDir, os, nick, memory), gameDir);
             view.launched();
         } catch (IOException e) {
             view.failed(e.getMessage());

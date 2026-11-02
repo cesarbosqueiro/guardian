@@ -38,6 +38,11 @@ public final class UserSettings {
         }
     }
 
+    /** Escape manual: caminho do Java a usar, se o jogador ou o operador escolher um. */
+    public String javaPath() {
+        return p.getProperty("javaPath", "");
+    }
+
     public boolean consented(int version, String textHash) {
         return Integer.toString(version).equals(p.getProperty("consent.version")) && textHash.equals(p.getProperty("consent.hash"));
     }

@@ -51,6 +51,22 @@ O jogo é instalado em `CraftWar/game/`. Nada vai para o `%APPDATA%`.
 
 **Atenção:** JRE 8 "minimizado" às vezes remove o SunEC. Sem ele, P-256 não existe e o agente desliga.
 
+### Qual Java roda o jogo
+
+`GameJava` procura nesta ordem e para no primeiro que existir:
+
+1. `javaPath` em `game/launcher/settings.properties`, se preenchido (absoluto ou relativo à pasta do launcher; aceita o executável ou a pasta que o contém);
+2. `jre/bin` — o layout desta seção;
+3. `CraftLandia/bin/java/windows-x64/bin` — o layout do pacote antigo da CraftLandia;
+4. `j8/bin`;
+5. o `java.home` do próprio launcher, por último.
+
+Em cada pasta tenta `javaw.exe`, depois `java.exe`, depois `java`.
+
+O JRE do pacote vem **antes** do `java.home` de propósito: se o jogador abrir o `CraftWar.jar` com duplo clique, o launcher sobe no Java registrado no sistema, e não é ele que pode decidir a JVM do jogo. O 1.8.9 vanilla sobe mancando numa JVM moderna; o Forge não sobe (launchwrapper e ASM 5 não leem class files novos).
+
+As primeiras linhas de `game/logs/launcher-game.log` são o comando inteiro, um argumento por linha. É o primeiro lugar a olhar quando o jogo não abre ou o agente reporta degradado.
+
 ## 5. Staff
 
 | Comando | O que faz |

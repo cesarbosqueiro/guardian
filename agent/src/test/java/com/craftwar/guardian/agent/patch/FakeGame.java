@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -27,14 +28,14 @@ final class FakeGame extends ClassLoader {
         return defineClass(name, b, 0, b.length);
     }
 
-    static byte[] mouseHelper(int dx, int dy) {
-        ClassWriter cw = begin("net/minecraft/client/MouseHelper", "java/lang/Object");
+    static byte[] mouseHelper(String owner, int dx, int dy) {
+        ClassWriter cw = begin(owner, "java/lang/Object");
         cw.visitField(Opcodes.ACC_PUBLIC, "field_74377_a", "I", null, null).visitEnd();
         cw.visitField(Opcodes.ACC_PUBLIC, "field_74375_b", "I", null, null).visitEnd();
         MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "func_74374_c", "()V", null, null);
         mv.visitCode();
-        setInt(mv, "net/minecraft/client/MouseHelper", "field_74377_a", dx);
-        setInt(mv, "net/minecraft/client/MouseHelper", "field_74375_b", dy);
+        setInt(mv, owner, "field_74377_a", dx);
+        setInt(mv, owner, "field_74375_b", dy);
         mv.visitInsn(Opcodes.RETURN);
         mv.visitMaxs(0, 0);
         mv.visitEnd();
@@ -52,6 +53,28 @@ final class FakeGame extends ClassLoader {
         ClassWriter cw = begin("net/minecraft/client/entity/EntityPlayerSP", "net/minecraft/entity/Entity");
         MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "func_175161_p", "()V", null, null);
         mv.visitCode();
+        mv.visitInsn(Opcodes.RETURN);
+        mv.visitMaxs(0, 0);
+        mv.visitEnd();
+        return cw.toByteArray();
+    }
+
+    /**
+     * Como {@link #player()}, mas com um salto e um stack map frame explicito.
+     *
+     * Classe compilada de verdade tem frames. As outras classes falsas daqui nao tem, e
+     * sem elas o {@link PatchAdapter} -- que herda de LocalVariablesSorter -- nunca
+     * recebe um visitFrame e portanto nunca cobra frames expandidos do ClassReader.
+     */
+    static byte[] playerWithFrames() {
+        ClassWriter cw = begin("net/minecraft/client/entity/EntityPlayerSP", "net/minecraft/entity/Entity");
+        MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "func_175161_p", "()V", null, null);
+        mv.visitCode();
+        Label skip = new Label();
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+        mv.visitJumpInsn(Opcodes.IFNULL, skip);
+        mv.visitLabel(skip);
+        mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
         mv.visitInsn(Opcodes.RETURN);
         mv.visitMaxs(0, 0);
         mv.visitEnd();

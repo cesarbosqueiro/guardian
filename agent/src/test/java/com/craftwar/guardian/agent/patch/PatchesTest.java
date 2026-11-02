@@ -2,6 +2,7 @@ package com.craftwar.guardian.agent.patch;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -36,10 +37,11 @@ public class PatchesTest {
 
     @Test
     public void mouseDeltaReachesRecorder() throws Exception {
+        String owner = mapping().get("mouseHelper.class");
         Patch patch = named(Patches.all(mapping()), "mouse-delta");
-        byte[] patched = Patcher.apply(FakeGame.mouseHelper(7, -3), Collections.singletonList(patch));
+        byte[] patched = Patcher.apply(FakeGame.mouseHelper(owner, 7, -3), Collections.singletonList(patch));
         assertTrue(patch.applied());
-        Class<?> c = new FakeGame().add("net/minecraft/client/MouseHelper", patched).loadClass("net.minecraft.client.MouseHelper");
+        Class<?> c = new FakeGame().add(owner, patched).loadClass(owner.replace('/', '.'));
         long before = RecorderProbe.frames();
         c.getMethod("func_74374_c").invoke(c.newInstance());
         assertEquals(before + 1, RecorderProbe.frames());
@@ -49,8 +51,9 @@ public class PatchesTest {
 
     @Test
     public void mouseDeltaSkipsWhenFieldsMissing() throws Exception {
-        Patch patch = new MouseDeltaPatch("net/minecraft/client/MouseHelper", "func_74374_c", "()V", "nope", "field_74375_b");
-        assertNull(Patcher.apply(FakeGame.mouseHelper(1, 1), Collections.singletonList(patch)));
+        String owner = mapping().get("mouseHelper.class");
+        Patch patch = new MouseDeltaPatch(owner, "func_74374_c", "()V", "nope", "field_74375_b");
+        assertNull(Patcher.apply(FakeGame.mouseHelper(owner, 1, 1), Collections.singletonList(patch)));
         assertFalse(patch.applied());
     }
 
@@ -71,6 +74,26 @@ public class PatchesTest {
         assertEquals(before + 1, RecorderProbe.ticks());
         assertEquals(123.25f, RecorderProbe.lastYaw(), 0f);
         assertEquals(-45.5f, RecorderProbe.lastPitch(), 0f);
+    }
+
+    /**
+     * O jogo de verdade vem com stack map frames. Se o Patcher ler a classe sem
+     * EXPAND_FRAMES, o LocalVariablesSorter dentro do PatchAdapter rejeita o frame
+     * comprimido e o patch nao aplica -- sem quebrar o jogo, so deixando o agente cego.
+     */
+    @Test
+    public void patchesClassThatHasStackMapFrames() throws Exception {
+        Patch patch = named(Patches.all(mapping()), "movement");
+        byte[] patched = Patcher.apply(FakeGame.playerWithFrames(), Collections.singletonList(patch));
+        assertTrue(patch.applied());
+        // Carregar e inicializar forca o verificador da JVM a conferir o StackMapTable
+        // que saiu do patch. Nao invoca func_175161_p de proposito: o Probes guarda o
+        // Field da primeira Entity que ve, e este teste traz a sua propria num
+        // classloader separado -- invocar aqui envenenaria o cache para os outros testes.
+        FakeGame game = new FakeGame().add("net/minecraft/entity/Entity", FakeGame.entity())
+            .add("net/minecraft/client/entity/EntityPlayerSP", patched);
+        Class<?> c = game.loadClass("net.minecraft.client.entity.EntityPlayerSP");
+        assertNotNull(c.newInstance());
     }
 
     @Test

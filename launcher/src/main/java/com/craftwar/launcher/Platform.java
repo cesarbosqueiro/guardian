@@ -15,14 +15,6 @@ public final class Platform {
         return "linux";
     }
 
-    public static File javaExecutable() {
-        File bin = new File(System.getProperty("java.home"), "bin");
-        File javaw = new File(bin, "javaw.exe");
-        if (javaw.isFile()) return javaw;
-        File exe = new File(bin, "java.exe");
-        return exe.isFile() ? exe : new File(bin, "java");
-    }
-
     public static File launcherDir() {
         try {
             File jar = new File(Platform.class.getProtectionDomain().getCodeSource().getLocation().toURI());
