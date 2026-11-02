@@ -1,0 +1,9 @@
+target/
+build/
+.gradle/
+run/
+out/
+*.iml
+.idea/
+manifest.key
+identity.key

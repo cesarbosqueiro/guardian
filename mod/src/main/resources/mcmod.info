@@ -1,0 +1,10 @@
+[
+  {
+    "modid": "craftwarclient",
+    "name": "CraftWar Client",
+    "description": "HUD de PvP e ponte do anti-cheat Guardian.",
+    "version": "${version}",
+    "mcversion": "1.8.9",
+    "authorList": ["CraftWar"]
+  }
+]

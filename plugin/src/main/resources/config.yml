@@ -1,0 +1,41 @@
+enforce-restricted-mode: false
+restricted-worlds: []
+restricted-message: "&cPvP disponivel apenas pelo launcher oficial: craftwar.com.br"
+
+attestation-timeout-seconds: 20
+heartbeat-seconds: 5
+silence-heartbeats: 3
+inventory-seconds: 60
+ignored-class-prefixes: []
+
+attack-without-click-tolerance: 3
+
+score:
+  half-life-minutes: 60
+  alert: 20
+  review: 50
+
+weights:
+  MULTI_AURA: 25
+  ATTACK_WITHOUT_CLICK: 10
+  SILENT_AGENT: 15
+  ORPHAN_CLASS: 5
+  FOREIGN_SOURCE: 10
+  REDEFINITION: 15
+  JVM_ARGUMENT: 10
+  AGENT_DEGRADED: 0
+  FINDINGS_DROPPED: 2
+  GRIM_FLAG: 2
+
+auto-black-box:
+  min-weight: 10
+  cooldown-seconds: 120
+
+retention:
+  capture-hours: 72
+  black-box-days: 7
+  held-days: 90
+
+grim:
+  enabled: true
+  event-class: ac.grim.grimac.api.events.FlagEvent

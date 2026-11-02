@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "name": "CraftWar",
+  "versionId": "1.8.9-forge1.8.9-11.15.1.2318-1.8.9",
+  "cdnBaseUrl": "https://cdn.craftwar.com.br/launcher/files/",
+  "agentJar": "../agent/target/guardian-agent.jar",
+  "agentMapping": "forge-1.8.9",
+  "server": {
+    "host": "pvp.craftwar.com.br",
+    "port": 25565,
+    "publicKey": "COLE_AQUI_A_SAIDA_DE_/guardian_key"
+  },
+  "consent": {
+    "version": 1,
+    "text": "ANTI-CHEAT DO SERVIDOR\n\nPara jogar na CraftWar, este launcher ativa um componente de anti-cheat dentro do jogo. Enquanto voce estiver conectado, ele envia ao servidor:\n\n  - quais mods e resource packs estao carregados no jogo;\n  - informacoes do jogo: versao, placa de video, resolucao, FPS;\n  - contagem de cliques e, quando a staff ou o sistema abrir uma verificacao, o registro dos ultimos 60 segundos de mouse, rotacao e cliques DENTRO do jogo.\n\nSe um membro da equipe abrir uma verificacao, ele pode solicitar uma imagem do que o SEU JOGO esta renderizando. Voce vera um aviso na tela quando isso acontecer.\n\nO componente NAO acessa: outros programas, seus arquivos, o que voce digita, sua navegacao, nem a tela inteira do computador.\n\nCapturas ficam no servidor por ate 72 horas e registros por ate 7 dias (90 dias se houver punicao em analise), acessados apenas pela equipe de moderacao.\n\nSe voce tem menos de 18 anos, confirme com seu responsavel."
+  },
+  "java": {
+    "minimumMemoryMb": 1024,
+    "defaultMemoryMb": 2048,
+    "flags": [
+      "-XX:+UseG1GC",
+      "-XX:+UnlockExperimentalVMOptions",
+      "-XX:G1NewSizePercent=20",
+      "-XX:G1ReservePercent=20",
+      "-XX:MaxGCPauseMillis=30",
+      "-XX:G1HeapRegionSize=16M",
+      "-XX:+DisableExplicitGC",
+      "-XX:+AlwaysPreTouch"
+    ]
+  }
+}

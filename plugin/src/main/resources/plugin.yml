@@ -1,0 +1,17 @@
+name: Guardian
+main: com.craftwar.guardian.plugin.GuardianPlugin
+version: ${project.version}
+softdepend: [GrimAC]
+commands:
+  guardian:
+    description: Ferramentas de verificacao da staff
+    usage: /guardian <info|box|ss|window|case|hold|release|key>
+    permission: craftwar.guardian.staff
+    aliases: [gd]
+permissions:
+  craftwar.guardian.staff:
+    default: op
+  craftwar.guardian.alerts:
+    default: op
+  craftwar.guardian.attested:
+    default: false
